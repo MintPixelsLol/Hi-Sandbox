@@ -1,3 +1,3 @@
-# template
+# Hi Sandbox
 
-This is a template for starting new 3DS libctru projects.
+A 3DS homebrew software where you can throw your preferred cat around (no real cat gets harmed).
