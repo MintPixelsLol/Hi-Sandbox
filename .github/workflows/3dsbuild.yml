@@ -1,0 +1,43 @@
+name: Build 3DS Homebrew
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install devkitPro
+        run: |
+          wget https://apt.devkitpro.org/install-devkitpro-pacman
+          chmod +x install-devkitpro-pacman
+          sudo ./install-devkitpro-pacman
+
+      - name: Install 3DS toolchain
+        run: |
+          sudo dkp-pacman -Sy --noconfirm 3ds-dev
+
+      - name: Build
+        run: |
+          export DEVKITPRO=/opt/devkitpro
+          export DEVKITARM=$DEVKITPRO/devkitARM
+          make
+
+      - name: Upload build outputs
+        uses: actions/upload-artifact@v4
+        with:
+          name: 3ds-homebrew
+          if-no-files-found: error
+          path: |
+            *.3dsx
+            *.elf
+            *.smdh
