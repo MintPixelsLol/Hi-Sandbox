@@ -12,9 +12,12 @@ jobs:
   build:
     runs-on: ubuntu-latest
     container:
-      image: devkitpro/devkitarm:20260610
+      image: devkitpro/devkitarm
 
     steps:
+      - name: Is there tex3ds
+        run: which tex3ds
+    
       - name: Checkout repository
         uses: actions/checkout@v4
 
@@ -22,6 +25,7 @@ jobs:
         run: |
           export DEVKITPRO=/opt/devkitpro
           export DEVKITARM=$DEVKITPRO/devkitARM
+          make clean
           make
 
       - name: Upload build outputs
