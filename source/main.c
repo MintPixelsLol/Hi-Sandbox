@@ -5,9 +5,22 @@
 #include <citro2d.h>
 #include <math.h>
 
+#include "audioPlay.h"
+
 #define CATS 3
+#define INTROCATS 20
 C2D_TextBuf g_staticBuf, g_dynamicBuf;
-C2D_Text g_staticText[CATS+2];
+C2D_Text g_staticText[CATS+4];
+struct introCat {
+	int cat;
+	float x;
+	float y;
+	float rot;
+	float rotS;
+	float xS;
+	float scale;
+};
+struct introCat introCats[INTROCATS];
 
 int main(int argc, char* argv[])
 {
@@ -27,11 +40,15 @@ int main(int argc, char* argv[])
 	C3D_RenderTarget* top = C2D_CreateScreenTarget(GFX_TOP, GFX_LEFT);
 	C2D_SpriteSheet spriteSheet = C2D_SpriteSheetLoad("romfs:/gfx/sprites.t3x");
 	if (!spriteSheet) svcBreak(USERBREAK_PANIC);
+	C2D_SpriteSheet backgroundSheet = C2D_SpriteSheetLoad("romfs:/gfx/backgrounds.t3x");
+	if (!backgroundSheet) svcBreak(USERBREAK_PANIC);
 	if (C2D_SpriteSheetCount(spriteSheet) < CATS) svcBreak(USERBREAK_PANIC);
+	if (C2D_SpriteSheetCount(backgroundSheet) < 1) svcBreak(USERBREAK_PANIC);
     C2D_Image uni = C2D_SpriteSheetGetImage(spriteSheet, 1);
     C2D_Image hiCat = C2D_SpriteSheetGetImage(spriteSheet, 0);
     C2D_Image marker = C2D_SpriteSheetGetImage(spriteSheet, 2);
     C2D_Image images[CATS] = {hiCat, uni, marker};
+    C2D_Image backgrounds[1] = {C2D_SpriteSheetGetImage(backgroundSheet, 0)};
 	u32 color1  = C2D_Color32(0xFF, 0xFF, 0xFF, 0xFF);
 	u32 color2  = C2D_Color32(0xFF, 0x0, 0x0, 0xFF);
 	u32 color3  = C2D_Color32(0x0, 0x0, 0xFF, 0xFF);
@@ -47,13 +64,52 @@ int main(int argc, char* argv[])
 	C2D_TextOptimize(&g_staticText[CATS]);
 	C2D_TextParse(&g_staticText[1+CATS], g_staticBuf, "Press START to exit.");
 	C2D_TextOptimize(&g_staticText[1+CATS]);
+	C2D_TextParse(&g_staticText[2+CATS], g_staticBuf, "Press A to continue.");
+	C2D_TextOptimize(&g_staticText[2+CATS]);
+	C2D_TextParse(&g_staticText[3+CATS], g_staticBuf, "idk if I'll use ts");
+	C2D_TextOptimize(&g_staticText[3+CATS]);
+	audio_init();
+	audio_play("romfs:/sfx/bgm.pcm");
+	for (int i=0;i<INTROCATS;i++){introCats[i].x = 800.0;}
 	// Main loop
 	while (aptMainLoop())
 	{
 		hidScanInput();
 		touchPosition touch;
+		hidTouchRead(&touch);
+		u32 kDown = hidKeysDown();
+		u32 kHeld = hidKeysHeld();
+		if (mode == 67) {break;}
 		switch (mode) {
 			case 0:
+				C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
+				C2D_TargetClear(bottom, color1);
+				C2D_SceneBegin(bottom);
+				for (int i=0;i<INTROCATS;i++){
+					if (introCats[i].x > 599) {
+						introCats[i].cat = rand()%CATS;
+						introCats[i].x = -200;
+						introCats[i].y = rand()%280+20;
+						introCats[i].rot = 0;
+						introCats[i].rotS = (float)(rand()%10)*0.01745329;
+						introCats[i].xS = (float)(rand() % (75 - 20 + 10) + 20)/10.0;
+						introCats[i].scale = (float)(rand() % (50 - 25 + 50) + 25)/100.0;
+					}
+					introCats[i].x += introCats[i].xS;
+					introCats[i].rot += introCats[i].rotS;
+					C2D_DrawImageAtRotated(images[introCats[i].cat], introCats[i].x, introCats[i].y, 0, introCats[i].rot, NULL, introCats[i].scale, introCats[i].scale);
+				}
+				C2D_DrawRectSolid(85, 190, 0, 150, 50, color1);
+				C2D_DrawText(&g_staticText[CATS+2], C2D_AlignCenter, 160, 200, 0, 0.5, 0.5);
+				C2D_DrawText(&g_staticText[CATS+1], C2D_AlignCenter, 160, 220, 0, 0.5, 0.5);
+				C2D_TargetClear(top, color1);
+				C2D_SceneBegin(top);
+				C2D_DrawImageAt(backgrounds[0], 0, 0, 0, NULL, 1, 1);
+				C3D_FrameEnd(0);
+				if (kDown & KEY_A) {mode = 1;audio_stop();}
+				if (kDown & KEY_START){mode = 67;audio_stop();}
+				break;
+			case 1:
 				if (isPicked) {
 					x = touch.px-refPos[0]+40;
 					y = touch.py-refPos[1]+240;
@@ -79,18 +135,13 @@ int main(int argc, char* argv[])
 				y += velocity[1];
 				x += velocity[0];
 				if (y<-160) velocity[1]+=1;
-				// Your code goes here
-				u32 kDown = hidKeysDown();
-				u32 kHeld = hidKeysHeld();
 				if (kDown & KEY_START){
-					break; // break in order to return to hbmenu
+					mode = 67; // break in order to return to hbmenu
 				}
 				if (kDown & KEY_A) {
 					cat++;
 					if (cat >= CATS) {cat = 0;} 
-				}
-				hidTouchRead(&touch);
-				
+				}				
 				C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
 				
 				C2D_TargetClear(bottom, color1);
@@ -147,8 +198,12 @@ int main(int argc, char* argv[])
 				break;
 		}
 	}
+	audio_stop();
+    ndspExit();
 	C2D_TextBufDelete(g_staticBuf);
+	C2D_TextBufDelete(g_dynamicBuf);
 	C2D_SpriteSheetFree(spriteSheet);
+	C2D_SpriteSheetFree(bakgroundSheet);
 	C2D_Fini();
 	C3D_Fini();
 	romfsExit();
