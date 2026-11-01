@@ -203,7 +203,7 @@ int main(int argc, char* argv[])
 	C2D_TextBufDelete(g_staticBuf);
 	C2D_TextBufDelete(g_dynamicBuf);
 	C2D_SpriteSheetFree(spriteSheet);
-	C2D_SpriteSheetFree(bakgroundSheet);
+	C2D_SpriteSheetFree(backgroundSheet);
 	C2D_Fini();
 	C3D_Fini();
 	romfsExit();
