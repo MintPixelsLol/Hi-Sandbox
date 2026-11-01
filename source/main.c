@@ -110,7 +110,7 @@ int main(int argc, char* argv[])
 				if (kDown & KEY_START){mode = 67;audio_stop();}
 				break;
 			case 1:
-				if (isPicked) {
+				if (isPicked && (kHeld & KEY_TOUCH)) {
 					x = touch.px-refPos[0]+40;
 					y = touch.py-refPos[1]+240;
 					velocity[1] = 0;
@@ -160,6 +160,10 @@ int main(int argc, char* argv[])
 				}
 				if (kHeld & KEY_TOUCH) {
 					C2D_DrawCircleSolid(touch.px, touch.py, 0, 5, color2);
+					touchVel[0] = touch.px - touchVel[2];
+					touchVel[1] = touch.py - touchVel[3];
+					touchVel[2] = touch.px;
+					touchVel[3] = touch.py;
 				} else {
 					if (touchVel[3] != 0 && touchVel[2] != 0) {
 						if (isPicked) {
@@ -172,11 +176,6 @@ int main(int argc, char* argv[])
 				if (isPicked) {
 					C2D_DrawCircleSolid(touch.px, touch.py, 0, 10, color3);
 				}
-
-				touchVel[0] = touch.px - touchVel[2];
-				touchVel[1] = touch.py - touchVel[3];
-				touchVel[2] = touch.px;
-				touchVel[3] = touch.py;
 
 				C2D_TargetClear(top, color1);
 				C2D_SceneBegin(top);
