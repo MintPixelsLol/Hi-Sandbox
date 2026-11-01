@@ -1,0 +1,8 @@
+# Build output
+build/
+*.3dsx
+*.elf
+*.smdh
+
+# Generated graphics (converted from gfx/*.t3s)
+romfs/gfx/*.t3x

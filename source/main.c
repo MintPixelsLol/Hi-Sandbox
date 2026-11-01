@@ -11,6 +11,7 @@ C2D_Text g_staticText[CATS+2];
 
 int main(int argc, char* argv[])
 {
+	int mode = 0;
 	double x = 240;double y = 0;
 	int refPos[2] = {0,0};
 	double velocity[2] = {0,0};
@@ -25,11 +26,12 @@ int main(int argc, char* argv[])
 	C3D_RenderTarget* bottom = C2D_CreateScreenTarget(GFX_BOTTOM, GFX_LEFT);
 	C3D_RenderTarget* top = C2D_CreateScreenTarget(GFX_TOP, GFX_LEFT);
 	C2D_SpriteSheet spriteSheet = C2D_SpriteSheetLoad("romfs:/gfx/sprites.t3x");
+	if (!spriteSheet) svcBreak(USERBREAK_PANIC);
 	if (C2D_SpriteSheetCount(spriteSheet) < CATS) svcBreak(USERBREAK_PANIC);
-    if (!spriteSheet) svcBreak(USERBREAK_PANIC);
     C2D_Image uni = C2D_SpriteSheetGetImage(spriteSheet, 1);
     C2D_Image hiCat = C2D_SpriteSheetGetImage(spriteSheet, 0);
-    C2D_Image images[CATS] = {hiCat, uni};
+    C2D_Image marker = C2D_SpriteSheetGetImage(spriteSheet, 2);
+    C2D_Image images[CATS] = {hiCat, uni, marker};
 	u32 color1  = C2D_Color32(0xFF, 0xFF, 0xFF, 0xFF);
 	u32 color2  = C2D_Color32(0xFF, 0x0, 0x0, 0xFF);
 	u32 color3  = C2D_Color32(0x0, 0x0, 0xFF, 0xFF);
@@ -50,94 +52,100 @@ int main(int argc, char* argv[])
 	{
 		hidScanInput();
 		touchPosition touch;
-		//phys
-		if (isPicked) {
-			x = touch.px-refPos[0]+40;
-			y = touch.py-refPos[1]+240;
-			velocity[1] = 0;
-		} else {
-			if (y+160>479) {
-				if (velocity[1]<3) velocity[1] = 0;
-				velocity[1] = velocity[1]*-0.4;
-				y=320;
-				velocity[0]*=0.9;
-			} else {
-				velocity[1] += 0.1;
-			}
-		}
-		if (x<0) {
-			velocity[0] = abs(velocity[0])*0.75;
-			x = 0;
-		}
-		if (x>240) {
-			velocity[0] = abs(velocity[0])*-0.75;
-			x = 240;
-		}
-		y += velocity[1];
-		x += velocity[0];
-		if (y<-160) velocity[1]+=1;
-		// Your code goes here
-		u32 kDown = hidKeysDown();
-		u32 kHeld = hidKeysHeld();
-		if (kDown & KEY_START){
-			break; // break in order to return to hbmenu
-		}
-		if (kDown & KEY_A) {
-			cat++;
-			if (cat >= CATS) {cat = 0;} 
-		}
-		hidTouchRead(&touch);
-		
-		C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
-		
-		C2D_TargetClear(bottom, color1);
-		C2D_SceneBegin(bottom);
-		C2D_DrawText(&g_staticText[cat], C2D_AlignCenter, 160, 10, 0, 1, 1);
-		C2D_DrawText(&g_staticText[CATS], C2D_AlignCenter, 160, 200, 0, 0.5, 0.5);
-		C2D_DrawText(&g_staticText[CATS+1], C2D_AlignCenter, 160, 220, 0, 0.5, 0.5);
-		C2D_DrawImageAt(images[cat], (int)x-40, (int)y-240, 0, NULL, 1, 1);
-		
-		if (kDown & KEY_TOUCH) {
-			if (touch.px > x-40 && touch.px < x+120 && touch.py > y-240 && touch.py < y-80) {
-				isPicked = 1;
-				refPos[0] = touch.px-x+40;
-				refPos[1] = touch.py-(y-240);
-			}
-		}
-		if (kHeld & KEY_TOUCH) {
-			C2D_DrawCircleSolid(touch.px, touch.py, 0, 5, color2);
-		} else {
-			if (touchVel[3] != 0 && touchVel[2] != 0) {
+		switch (mode) {
+			case 0:
 				if (isPicked) {
-					velocity[0] = touchVel[0];
-					velocity[1] = touchVel[1];
+					x = touch.px-refPos[0]+40;
+					y = touch.py-refPos[1]+240;
+					velocity[1] = 0;
+				} else {
+					if (y+160>479) {
+						if (velocity[1]<3) velocity[1] = 0;
+						velocity[1] = velocity[1]*-0.4;
+						y=320;
+						velocity[0]*=0.9;
+					} else {
+						velocity[1] += 0.1;
+					}
 				}
-				isPicked = 0;
-			}
-		}
-		if (isPicked) {
-			C2D_DrawCircleSolid(touch.px, touch.py, 0, 10, color3);
-		}
+				if (x<0) {
+					velocity[0] = abs(velocity[0])*0.75;
+					x = 0;
+				}
+				if (x>240) {
+					velocity[0] = abs(velocity[0])*-0.75;
+					x = 240;
+				}
+				y += velocity[1];
+				x += velocity[0];
+				if (y<-160) velocity[1]+=1;
+				// Your code goes here
+				u32 kDown = hidKeysDown();
+				u32 kHeld = hidKeysHeld();
+				if (kDown & KEY_START){
+					break; // break in order to return to hbmenu
+				}
+				if (kDown & KEY_A) {
+					cat++;
+					if (cat >= CATS) {cat = 0;} 
+				}
+				hidTouchRead(&touch);
+				
+				C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
+				
+				C2D_TargetClear(bottom, color1);
+				C2D_SceneBegin(bottom);
+				C2D_DrawText(&g_staticText[cat], C2D_AlignCenter, 160, 10, 0, 1, 1);
+				C2D_DrawText(&g_staticText[CATS], C2D_AlignCenter, 160, 200, 0, 0.5, 0.5);
+				C2D_DrawText(&g_staticText[CATS+1], C2D_AlignCenter, 160, 220, 0, 0.5, 0.5);
+				C2D_DrawImageAt(images[cat], (int)x-40, (int)y-240, 0, NULL, 1, 1);
+				
+				if (kDown & KEY_TOUCH) {
+					if (touch.px > x-40 && touch.px < x+120 && touch.py > y-240 && touch.py < y-80) {
+						isPicked = 1;
+						refPos[0] = touch.px-x+40;
+						refPos[1] = touch.py-(y-240);
+					}
+				}
+				if (kHeld & KEY_TOUCH) {
+					C2D_DrawCircleSolid(touch.px, touch.py, 0, 5, color2);
+				} else {
+					if (touchVel[3] != 0 && touchVel[2] != 0) {
+						if (isPicked) {
+							velocity[0] = touchVel[0];
+							velocity[1] = touchVel[1];
+						}
+						isPicked = 0;
+					}
+				}
+				if (isPicked) {
+					C2D_DrawCircleSolid(touch.px, touch.py, 0, 10, color3);
+				}
 
-		touchVel[0] = touch.px - touchVel[2];
-		touchVel[1] = touch.py - touchVel[3];
-		touchVel[2] = touch.px;
-		touchVel[3] = touch.py;
+				touchVel[0] = touch.px - touchVel[2];
+				touchVel[1] = touch.py - touchVel[3];
+				touchVel[2] = touch.px;
+				touchVel[3] = touch.py;
 
-		C2D_TargetClear(top, color1);
-		C2D_SceneBegin(top);
-		C2D_TextBufClear(g_dynamicBuf);
-		char buf[160];
-		C2D_Text dynText;
-		
-		snprintf(buf, sizeof(buf), "velX: %f velY: %f", velocity[0], velocity[1]);
-		C2D_TextParse(&dynText, g_dynamicBuf, buf);
-		
-		C2D_TextOptimize(&dynText);
-		C2D_DrawText(&dynText, C2D_AlignCenter, 200, 0, 0, 0.5, 0.5);
-		
-		C2D_DrawImageAt(images[cat], (int)x, (int)y, 0, NULL, 1, 1);
-		C3D_FrameEnd(0);
+				C2D_TargetClear(top, color1);
+				C2D_SceneBegin(top);
+				C2D_TextBufClear(g_dynamicBuf);
+				char buf[160];
+				C2D_Text dynText;
+				
+				snprintf(buf, sizeof(buf), "velX: %f velY: %f", velocity[0], velocity[1]);
+				C2D_TextParse(&dynText, g_dynamicBuf, buf);
+				
+				C2D_TextOptimize(&dynText);
+				C2D_DrawText(&dynText, C2D_AlignCenter, 200, 0, 0, 0.5, 0.5);
+				
+				C2D_DrawImageAt(images[cat], (int)x, (int)y, 0, NULL, 1, 1);
+				C3D_FrameEnd(0);
+				break;
+			default:
+				mode = 0;
+				break;
+		}
 	}
 	C2D_TextBufDelete(g_staticBuf);
 	C2D_SpriteSheetFree(spriteSheet);
