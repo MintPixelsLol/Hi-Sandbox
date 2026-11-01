@@ -5,9 +5,9 @@
 #include <citro2d.h>
 #include <math.h>
 
-
+#define CATS 3
 C2D_TextBuf g_staticBuf, g_dynamicBuf;
-C2D_Text g_staticText[4];
+C2D_Text g_staticText[CATS+2];
 
 int main(int argc, char* argv[])
 {
@@ -25,11 +25,11 @@ int main(int argc, char* argv[])
 	C3D_RenderTarget* bottom = C2D_CreateScreenTarget(GFX_BOTTOM, GFX_LEFT);
 	C3D_RenderTarget* top = C2D_CreateScreenTarget(GFX_TOP, GFX_LEFT);
 	C2D_SpriteSheet spriteSheet = C2D_SpriteSheetLoad("romfs:/gfx/sprites.t3x");
-	if (C2D_SpriteSheetCount(spriteSheet) < 2) svcBreak(USERBREAK_PANIC);
+	if (C2D_SpriteSheetCount(spriteSheet) < CATS) svcBreak(USERBREAK_PANIC);
     if (!spriteSheet) svcBreak(USERBREAK_PANIC);
     C2D_Image uni = C2D_SpriteSheetGetImage(spriteSheet, 1);
     C2D_Image hiCat = C2D_SpriteSheetGetImage(spriteSheet, 0);
-    C2D_Image images[2] = {hiCat, uni};
+    C2D_Image images[CATS] = {hiCat, uni};
 	u32 color1  = C2D_Color32(0xFF, 0xFF, 0xFF, 0xFF);
 	u32 color2  = C2D_Color32(0xFF, 0x0, 0x0, 0xFF);
 	u32 color3  = C2D_Color32(0x0, 0x0, 0xFF, 0xFF);
@@ -39,10 +39,12 @@ int main(int argc, char* argv[])
 	C2D_TextOptimize(&g_staticText[0]);
 	C2D_TextParse(&g_staticText[1], g_staticBuf, "HI UNI!!!!!");
 	C2D_TextOptimize(&g_staticText[1]);
-	C2D_TextParse(&g_staticText[2], g_staticBuf, "Press A to switch cats.");
+	C2D_TextParse(&g_staticText[2], g_staticBuf, "hello everybody I'm a fish");
 	C2D_TextOptimize(&g_staticText[2]);
-	C2D_TextParse(&g_staticText[3], g_staticBuf, "Press START to exit.");
-	C2D_TextOptimize(&g_staticText[3]);
+	C2D_TextParse(&g_staticText[CATS], g_staticBuf, "Press A to switch cats.");
+	C2D_TextOptimize(&g_staticText[CATS]);
+	C2D_TextParse(&g_staticText[1+CATS], g_staticBuf, "Press START to exit.");
+	C2D_TextOptimize(&g_staticText[1+CATS]);
 	// Main loop
 	while (aptMainLoop())
 	{
@@ -81,8 +83,8 @@ int main(int argc, char* argv[])
 			break; // break in order to return to hbmenu
 		}
 		if (kDown & KEY_A) {
-			if (cat == 0) {cat = 1;} 
-			else {cat = 0;}
+			cat++;
+			if (cat >= CATS) {cat = 0;} 
 		}
 		hidTouchRead(&touch);
 		
@@ -91,8 +93,8 @@ int main(int argc, char* argv[])
 		C2D_TargetClear(bottom, color1);
 		C2D_SceneBegin(bottom);
 		C2D_DrawText(&g_staticText[cat], C2D_AlignCenter, 160, 10, 0, 1, 1);
-		C2D_DrawText(&g_staticText[2], C2D_AlignCenter, 160, 200, 0, 0.5, 0.5);
-		C2D_DrawText(&g_staticText[3], C2D_AlignCenter, 160, 220, 0, 0.5, 0.5);
+		C2D_DrawText(&g_staticText[CATS], C2D_AlignCenter, 160, 200, 0, 0.5, 0.5);
+		C2D_DrawText(&g_staticText[CATS+1], C2D_AlignCenter, 160, 220, 0, 0.5, 0.5);
 		C2D_DrawImageAt(images[cat], (int)x-40, (int)y-240, 0, NULL, 1, 1);
 		
 		if (kDown & KEY_TOUCH) {
