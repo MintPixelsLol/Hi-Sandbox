@@ -7,7 +7,7 @@
 
 #include "audioPlay.h"
 
-#define CATS 3
+#define CATS 6
 #define INTROCATS 20
 C2D_TextBuf g_staticBuf, g_dynamicBuf;
 C2D_Text g_staticText[CATS+4];
@@ -60,6 +60,12 @@ int main(int argc, char* argv[])
 	C2D_TextOptimize(&g_staticText[1]);
 	C2D_TextParse(&g_staticText[2], g_staticBuf, "hello everybody I'm a fish");
 	C2D_TextOptimize(&g_staticText[2]);
+	C2D_TextParse(&g_staticText[3], g_staticBuf, "where is it tho");
+	C2D_TextOptimize(&g_staticText[3]);
+	C2D_TextParse(&g_staticText[4], g_staticBuf, "no problem");
+	C2D_TextOptimize(&g_staticText[4]);
+	C2D_TextParse(&g_staticText[5], g_staticBuf, "bro ain't a cat");
+	C2D_TextOptimize(&g_staticText[5]);
 	C2D_TextParse(&g_staticText[CATS], g_staticBuf, "Press A to switch cats.");
 	C2D_TextOptimize(&g_staticText[CATS]);
 	C2D_TextParse(&g_staticText[1+CATS], g_staticBuf, "Press START to exit.");
