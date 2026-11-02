@@ -44,20 +44,20 @@ int main(int argc, char* argv[])
 	if (!backgroundSheet) svcBreak(USERBREAK_PANIC);
 	if (C2D_SpriteSheetCount(spriteSheet) < CATS) svcBreak(USERBREAK_PANIC);
 	if (C2D_SpriteSheetCount(backgroundSheet) < 1) svcBreak(USERBREAK_PANIC);
-    C2D_Image uni = C2D_SpriteSheetGetImage(spriteSheet, 1);
-    C2D_Image hiCat = C2D_SpriteSheetGetImage(spriteSheet, 0);
-    C2D_Image marker = C2D_SpriteSheetGetImage(spriteSheet, 2);
-    C2D_Image images[CATS] = {hiCat, uni, marker};
+    C2D_Image images[CATS];
+    for (int i = 0; i<CATS; i++) {
+    	images[i] = C2D_SpriteSheetGetImage(spriteSheet, i);
+    }
     C2D_Image backgrounds[1] = {C2D_SpriteSheetGetImage(backgroundSheet, 0)};
 	u32 color1  = C2D_Color32(0xFF, 0xFF, 0xFF, 0xFF);
 	u32 color2  = C2D_Color32(0xFF, 0x0, 0x0, 0xFF);
 	u32 color3  = C2D_Color32(0x0, 0x0, 0xFF, 0xFF);
 	g_staticBuf  = C2D_TextBufNew(4096); // support up to 4096 glyphs in the buffer
 	g_dynamicBuf = C2D_TextBufNew(4096);
-	C2D_TextParse(&g_staticText[0], g_staticBuf, "he said hi :skull:");
-	C2D_TextOptimize(&g_staticText[0]);
-	C2D_TextParse(&g_staticText[1], g_staticBuf, "HI UNI!!!!!");
+	C2D_TextParse(&g_staticText[1], g_staticBuf, "he said hi :skull:");
 	C2D_TextOptimize(&g_staticText[1]);
+	C2D_TextParse(&g_staticText[0], g_staticBuf, "HI UNI!!!!!");
+	C2D_TextOptimize(&g_staticText[0]);
 	C2D_TextParse(&g_staticText[2], g_staticBuf, "hello everybody I'm a fish");
 	C2D_TextOptimize(&g_staticText[2]);
 	C2D_TextParse(&g_staticText[3], g_staticBuf, "where is it tho");
